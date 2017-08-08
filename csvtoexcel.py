@@ -3,7 +3,7 @@
 #
 # Read a csv and writes a excel xlsx file merging columns with equal values.
 # This do not merge rows!!
-# This version only process columns from A to Z
+# This version only process columns from A to Z, But can be easily modified.
 
 # Feel free to adapt for you needs.
 #
@@ -29,6 +29,36 @@ def open_file(filename):
     except:
         print "Unexpected error:", sys.exc_info()[0]
         exit()
+
+
+def check_duplicated():
+# Read te fistr line with field names
+    fnames = csv.DictReader(csvfile, delimiter=_delimiter, dialect="excel").fieldnames
+# control variables
+    theend = len(fnames) - 1
+    found_error = 0
+
+# First loop in list elements
+    for first_x in range(len(fnames)):
+        if first_x == theend:
+            break
+# Second loop trhu actual position to position + 1cp cs 
+        second_x = first_x +1
+        while second_x < len(fnames):
+
+# Found an error ?
+            if fnames[first_x] == fnames[second_x]:
+                print "Field Name duplicated : {} = {}".format(fnames[first_x], fnames[second_x])
+                found_error += 1
+
+            second_x += 1
+
+    if found_error != 0:
+        print " ( {} ) erros were found! Exiting... \n".format(found_error)
+        csvfile.close()
+        sys.exit()
+
+    csvfile.seek(0)
 
 # PARSER ARGS
 # Parse of arguments
@@ -78,6 +108,9 @@ if _ifilename is None:
     parser.parse_args(['-h'])
     sys.exit()
 
+# Open CSV File
+csvfile = open_file(_ifilename)
+check_duplicated()
 
 # CONVERT TO EXCEL FORMAT
 
@@ -86,14 +119,14 @@ wb = xlsxwriter.Workbook(_ofilename)
 # Creates a Sheet
 ws = wb.add_worksheet('Cluster')
 # Format to single cels
-cell_format = wb.add_format({'align': 'center', 'valign': 'vcenter'})
+cell_format = wb.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
 # Format to merged cells
-merge_format = wb.add_format({'align': 'center', 'valign': 'vcenter', 'fg_color': '#DDDDDD', 'border': 1})
+merge_format = wb.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
 
 # LOOP READ AND WRITE
 
 # Read the CSV file and write it in excel format
-csvfile = open_file(_ifilename)
+
 reader = csv.reader(csvfile, delimiter=_delimiter)
 for row_index, row in enumerate(reader):
     for cell_index, cell in enumerate(row):
